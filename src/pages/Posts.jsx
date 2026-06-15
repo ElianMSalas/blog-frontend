@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { obtenerPosts } from '../services/api'
 import Navbar from '../components/Navbar'
 
@@ -7,7 +7,7 @@ export default function Posts() {
   const [posts, setPosts]       = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError]       = useState(null)
-  const [tag, setTag]           = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const cargar = async (tagFiltro = '') => {
     setCargando(true)
@@ -23,11 +23,17 @@ export default function Posts() {
     }
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    const tagDesdeUrl = searchParams.get('tag') ?? ''
+    cargar(tagDesdeUrl)
+  }, [searchParams])
 
   const handleBuscar = (valor) => {
-    setTag(valor)
-    cargar(valor)
+    if (valor) {
+      setSearchParams({ tag: valor })
+    } else {
+      setSearchParams({})
+    }
   }
 
   return (
@@ -35,15 +41,17 @@ export default function Posts() {
       <Navbar onBuscar={handleBuscar} />
       <main className="max-w-3xl mx-auto px-6 py-10">
 
-        {tag && (
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-sm text-gray-500">Filtrando por tag:</span>
-            <span className="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded-full">{tag}</span>
-            <button onClick={() => handleBuscar('')} className="text-xs text-gray-400 hover:text-red-500">
-              ✕ limpiar
-            </button>
-          </div>
-        )}
+      {searchParams.get('tag') && (
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-sm text-gray-500">Filtrando por tag:</span>
+          <span className="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded-full">
+            {searchParams.get('tag')}
+          </span>
+          <button onClick={() => handleBuscar('')} className="text-xs text-gray-400 hover:text-red-500">
+            ✕ limpiar
+          </button>
+        </div>
+      )}
 
         {cargando && <p className="text-center text-gray-400 animate-pulse mt-10">Cargando...</p>}
         {error   && <p className="text-center text-red-500 mt-10">{error}</p>}
@@ -58,7 +66,10 @@ export default function Posts() {
               className="block bg-white p-6 rounded-2xl shadow hover:shadow-md transition">
               <div className="flex flex-wrap gap-2 mb-2">
                 {post.tags?.map((t) => (
-                  <span key={t} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">{t}</span>
+                  <button key={t} onClick={(e) => { e.preventDefault(); handleBuscar(t) }}
+                    className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full hover:bg-indigo-200 transition">
+                    {t}
+                  </button>
                 ))}
               </div>
               <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
