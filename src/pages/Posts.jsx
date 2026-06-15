@@ -12,7 +12,7 @@ export default function Posts() {
       try {
         const { data } = await obtenerPosts()
         // Ajusta según lo que devuelva tu API: data.posts, data.data, etc.
-        setPosts(data.posts ?? data)
+        setPosts(data.data.posts ?? data)
       } catch (err) {
         setError(err.response?.data?.message || 'Error al cargar posts')
       } finally {
