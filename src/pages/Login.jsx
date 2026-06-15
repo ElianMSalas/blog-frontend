@@ -16,7 +16,7 @@ export default function Login() {
     setError(null)
     try {
       const { data } = await iniciarSesion(form)
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('token', data.data.token)
       navigate('/posts')
     } catch (err) {
       setError(err.response?.data?.message || 'Error al iniciar sesión')
