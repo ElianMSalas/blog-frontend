@@ -6,27 +6,47 @@ import { obtenerPostsSlug, eliminarPost, editarPost,
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 
+function ConfirmBox({ mensaje, onConfirmar, onCancelar }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-lg p-6 max-w-sm w-full mx-4 flex flex-col gap-4">
+        <p className="text-gray-800">{mensaje}</p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onCancelar}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition">
+            Cancelar
+          </button>
+          <button onClick={onConfirmar}
+            className="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function PostDetalle() {
-  const { slug }       = useParams()
-  const navigate       = useNavigate()
-  const { usuario }    = useAuth()
+  const { slug }    = useParams()
+  const navigate    = useNavigate()
+  const { usuario } = useAuth()
 
   const [post, setPost]               = useState(null)
   const [comentarios, setComentarios] = useState([])
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState(null)
+  const [errorAccion, setErrorAccion] = useState(null)
 
-  // Comentario nuevo
   const [nuevoComentario, setNuevoComentario] = useState('')
   const [enviando, setEnviando]               = useState(false)
 
-  // Editar comentario
-  const [editandoId, setEditandoId]       = useState(null)
-  const [textoEdicion, setTextoEdicion]   = useState('')
+  const [editandoId, setEditandoId]     = useState(null)
+  const [textoEdicion, setTextoEdicion] = useState('')
 
-  // Editar post
   const [editandoPost, setEditandoPost] = useState(false)
   const [formPost, setFormPost]         = useState({})
+
+  const [confirm, setConfirm] = useState(null)
 
   useEffect(() => {
     const cargar = async () => {
@@ -51,20 +71,31 @@ export default function PostDetalle() {
     cargar()
   }, [slug])
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  const pedirConfirmacion = (mensaje, onConfirmar) => {
+    setConfirm({ mensaje, onConfirmar })
+  }
+
+  const cerrarConfirm = () => setConfirm(null)
+
   // ── Acciones del post ──────────────────────────────────────────────────────
 
-  const handleEliminarPost = async () => {
-    if (!confirm('¿Eliminar este post? Esta acción no se puede deshacer.')) return
-    try {
-      await eliminarPost(post.slug)
-      navigate('/posts')
-    } catch (err) {
-      alert(err.response?.data?.message || 'Error al eliminar')
-    }
+  const handleEliminarPost = () => {
+    pedirConfirmacion('¿Eliminar este post? Esta acción no se puede deshacer.', async () => {
+      cerrarConfirm()
+      try {
+        await eliminarPost(post.slug)
+        navigate('/posts')
+      } catch (err) {
+        setErrorAccion(err.response?.data?.message || 'Error al eliminar el post')
+      }
+    })
   }
 
   const handleGuardarPost = async (e) => {
     e.preventDefault()
+    setErrorAccion(null)
     try {
       const payload = {
         ...formPost,
@@ -75,7 +106,7 @@ export default function PostDetalle() {
       setEditandoPost(false)
       navigate(`/posts/${data.data.slug}`, { replace: true })
     } catch (err) {
-      alert(err.response?.data?.message || 'Error al guardar')
+      setErrorAccion(err.response?.data?.message || 'Error al guardar el post')
     }
   }
 
@@ -85,42 +116,48 @@ export default function PostDetalle() {
     e.preventDefault()
     if (!usuario) { navigate('/login'); return }
     setEnviando(true)
+    setErrorAccion(null)
     try {
       const { data } = await crearComentario(post._id, { content: nuevoComentario })
       setComentarios([data.data, ...comentarios])
       setNuevoComentario('')
     } catch (err) {
       if (err.response?.status === 401) { navigate('/login'); return }
-      alert(err.response?.data?.message || 'Error al comentar')
+      setErrorAccion(err.response?.data?.message || 'Error al comentar')
     } finally {
       setEnviando(false)
     }
   }
 
   const handleEditarComentario = async (comentarioId) => {
+    setErrorAccion(null)
     try {
       const { data } = await editarComentario(comentarioId, { content: textoEdicion })
       setComentarios(comentarios.map((c) => c._id === comentarioId ? data.data : c))
       setEditandoId(null)
     } catch (err) {
-      alert(err.response?.data?.message || 'Error al editar')
+      setErrorAccion(err.response?.data?.message || 'Error al editar el comentario')
     }
   }
 
-  const handleEliminarComentario = async (comentarioId) => {
-    if (!confirm('¿Eliminar este comentario?')) return
-    try {
-      await eliminarComentario(comentarioId)
-      setComentarios(comentarios.filter((c) => c._id !== comentarioId))
-    } catch (err) {
-      alert(err.response?.data?.message || 'Error al eliminar')
-    }
+  const handleEliminarComentario = (comentarioId) => {
+    pedirConfirmacion('¿Eliminar este comentario?', async () => {
+      cerrarConfirm()
+      try {
+        await eliminarComentario(comentarioId)
+        setComentarios(comentarios.filter((c) => c._id !== comentarioId))
+      } catch (err) {
+        setErrorAccion(err.response?.data?.message || 'Error al eliminar el comentario')
+      }
+    })
   }
 
   // ── Permisos ───────────────────────────────────────────────────────────────
+
   const esAutorPost = usuario && post && (
     usuario.id === post.author?._id || usuario.role === 'admin'
   )
+
   const puedeEliminarComentario = (comentario) => usuario && (
     usuario.id === comentario.author?._id ||
     usuario.id === post?.author?._id ||
@@ -128,17 +165,32 @@ export default function PostDetalle() {
   )
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
   if (cargando) return <><Navbar /><p className="text-center mt-10 text-gray-400 animate-pulse">Cargando...</p></>
   if (error)    return <><Navbar /><p className="text-center mt-10 text-red-500">{error}</p></>
 
   return (
     <>
+      {confirm && (
+        <ConfirmBox
+          mensaje={confirm.mensaje}
+          onConfirmar={confirm.onConfirmar}
+          onCancelar={cerrarConfirm}
+        />
+      )}
+
       <Navbar />
       <main className="max-w-3xl mx-auto px-6 py-10">
 
         <Link to="/posts" className="text-sm text-indigo-600 hover:underline mb-6 block">
           ← Volver a posts
         </Link>
+
+        {errorAccion && (
+          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-4">
+            {errorAccion}
+          </p>
+        )}
 
         {/* ── Post ── */}
         {editandoPost ? (
@@ -212,7 +264,6 @@ export default function PostDetalle() {
             Comentarios ({comentarios.length})
           </h2>
 
-          {/* Formulario nuevo comentario */}
           {usuario ? (
             <form onSubmit={handleCrearComentario} className="flex flex-col gap-3 mb-8">
               <textarea value={nuevoComentario}
@@ -260,14 +311,12 @@ export default function PostDetalle() {
                     <div className="flex justify-between items-start">
                       <p className="text-sm font-medium text-gray-700">{c.author?.name}</p>
                       <div className="flex gap-2">
-                        {/* Editar: solo el autor del comentario */}
                         {usuario?.id === c.author?._id && (
                           <button onClick={() => { setEditandoId(c._id); setTextoEdicion(c.content) }}
                             className="text-xs text-gray-400 hover:text-indigo-600 transition">
                             Editar
                           </button>
                         )}
-                        {/* Eliminar: autor del comentario, autor del post o admin */}
                         {puedeEliminarComentario(c) && (
                           <button onClick={() => handleEliminarComentario(c._id)}
                             className="text-xs text-gray-400 hover:text-red-500 transition">
