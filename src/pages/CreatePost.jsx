@@ -1,21 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { crearPost } from '../services/api'
-import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 
 export default function CrearPost() {
-  const navigate    = useNavigate()
-  const { usuario } = useAuth()
-  const [form, setForm]     = useState({ title: '', content: '', excerpt: '', tags: '', status: 'published' })
-  const [error, setError]   = useState(null)
+  const navigate        = useNavigate()
+  const [form, setForm] = useState({ title: '', content: '', excerpt: '', tags: '', status: 'published' })
+  const [error, setError]       = useState(null)
   const [enviando, setEnviando] = useState(false)
-
-  // Si no está logueado, redirige al login
-  if (!usuario) {
-    navigate('/login')
-    return null
-  }
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -43,7 +35,9 @@ export default function CrearPost() {
       <main className="max-w-2xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Nuevo post</h1>
 
-        {error && <p className="text-red-600 text-sm mb-4 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+        {error && (
+          <p className="text-red-600 text-sm mb-4 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input name="title" value={form.title} onChange={handleChange}
