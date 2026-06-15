@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from "./components/ProtectedRoute"
 import Login       from './pages/Login'
 import Register    from './pages/Register'
 import Posts       from './pages/Posts'
@@ -15,8 +16,12 @@ export default function App() {
           <Route path="/login"       element={<Login />} />
           <Route path="/register"    element={<Register />} />
           <Route path="/posts"       element={<Posts />} />
-          <Route path="/posts/nuevo" element={<CrearPost />} />
           <Route path="/posts/:slug" element={<PostDetalle />} />
+          <Route path="/posts/nuevo" element={
+            <ProtectedRoute>
+              <CrearPost/>
+            </ProtectedRoute>
+          } />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
