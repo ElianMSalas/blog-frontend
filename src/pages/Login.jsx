@@ -28,7 +28,10 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <Link to="/posts" className="text-indigo-600 font-bold text-xl mb-8">
+        ← Volver al blog
+      </Link>
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow w-full max-w-sm flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-gray-900">Iniciar sesión</h1>
 
