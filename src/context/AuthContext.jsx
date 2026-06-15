@@ -4,6 +4,7 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
     const [usuario, setUsuario] = useState(null)
+    const [cargando, setCargando] = useState(true)
 
     useEffect(() => {
         const token = localStorage.getItem('token')
@@ -11,6 +12,7 @@ export function AuthProvider({ children }) {
         if (token && guardado) {
             setUsuario(JSON.parse(guardado))
         }
+        setCargando(false)
     }, [])
 
     const login = (token, user) => {
@@ -26,7 +28,7 @@ export function AuthProvider({ children }) {
     }
 
     return (
-        <AuthContext.Provider value = {{ usuario, login, logout }}>
+        <AuthContext.Provider value = {{ usuario, cargandom, login, logout }}>
             {children}
         </AuthContext.Provider>
     )
