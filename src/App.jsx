@@ -3,7 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import Login       from './pages/Login'
 import Register    from './pages/Register'
 import Posts       from './pages/Posts'
-import CrearPost   from './pages/CrearPost'
+import CrearPost   from './pages/CreatePost'
 import PostDetalle from './pages/PostDetalle'
 
 export default function App() {
