@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login      from './pages/Login'
 import Register   from './pages/Register'
 import Posts      from './pages/Posts'
-import CrearPost  from './pages/CrearPost'
+import CrearPost  from './pages/CreatePost'
 
 export default function App() {
   return (
