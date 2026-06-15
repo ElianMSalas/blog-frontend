@@ -9,7 +9,11 @@ export default function Navbar({ onBuscar }) {
 
   const handleBuscar = (e) => {
     e.preventDefault()
-    onBuscar?.(busqueda.trim())
+    if (busqueda.trim()) {
+      navigate(`/posts?tag=${busqueda.trim()}`)
+    } else {
+      navigate('/posts')
+    }
   }
 
   const handleLogout = () => {
