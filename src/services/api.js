@@ -19,7 +19,7 @@ export const registrar = (datos) => api.post('/auth/register', datos)
 export const iniciarSesion = (datos) => api.post('/auth/login', datos)
 
 // POSTS
-export const obtenerPosts = () => api.get('/posts')
+export const obtenerPosts = (params = {}) => api.get('/posts', { params })
 export const obtenerPostsById = (id) => api.get(`/posts/id/${id}`)
 export const obtenerPostsSlug = (slug) => api.get(`/posts/${slug}`)
 export const crearPost = (datos) => api.post('/posts', datos)
